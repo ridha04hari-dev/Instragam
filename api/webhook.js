@@ -2,12 +2,17 @@
 export default async function handler(req, res) {
   // 1. Meta Handshake Challenge (GET)
   if (req.method === "GET") {
-    const challenge = req.query["hub.challenge"] || req.query["challenge"];
-    if (challenge) {
+    const mode = req.query["hub.mode"];
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
+    const expectedToken = process.env.INSTAGRAM_VERIFY_TOKEN;
+
+    if (mode === "subscribe" && token === expectedToken && challenge) {
       res.setHeader("Content-Type", "text/plain");
       return res.status(200).send(challenge);
     }
-    return res.status(200).send("Gateway Active");
+
+    return res.status(403).send("Forbidden");
   }
 
   // 2. Forward incoming Instagram POST events to your main app
